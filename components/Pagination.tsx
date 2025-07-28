@@ -50,29 +50,6 @@ export default function Pagination({
     return rangeWithDots;
   };
 
-  if (totalPages <= 1) {
-    return (
-      <div className="flex items-center justify-between px-4 py-3 sm:px-6">
-        <div className="flex-1 flex justify-between sm:hidden">
-          <span className="text-sm text-gray-700">
-            Menampilkan {startItem} - {endItem} dari {totalItems} data pada
-            kolom 1 dari 1 kolom
-          </span>
-        </div>
-        <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm text-gray-700">
-              Menampilkan <span className="font-medium">{startItem}</span> -{" "}
-              <span className="font-medium">{endItem}</span> dari{" "}
-              <span className="font-medium">{totalItems}</span> data pada kolom
-              1 dari 1 kolom
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex items-center justify-between px-4 py-3 sm:px-6">
       <div className="flex-1 flex justify-between sm:hidden">
@@ -149,7 +126,7 @@ export default function Pagination({
                   onClick={() => onPageChange(pageNumber)}
                   className={`relative inline-flex items-center px-4 py-2 text-sm font-medium ${
                     isActive
-                      ? "z-10 bg-blue-500 border-primary-500 text-white"
+                      ? "z-10 bg-blue-500 border-primary-500 text-white rounded-md"
                       : "  text-gray-500 hover:bg-gray-50"
                   }`}
                 >
