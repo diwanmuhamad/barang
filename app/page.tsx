@@ -20,6 +20,7 @@ type DataItem = MasterBarang | MasterKategori | StockBarang;
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState<TabType>("master-barang");
   const [isFilterOpen, setIsFilterOpen] = useState(true);
+  const [isDisplayFilter, setIsDisplayFilter] = useState(false);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<DataItem[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -216,9 +217,18 @@ export default function HomePage() {
 
       {/* Tab Navigation */}
       <TabNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+      <div className="flex justify-end ">
+        <button
+          onClick={() => setIsDisplayFilter(!isDisplayFilter)}
+          className="px-6 py-2 border border-yellow-500 rounded-full text-yellow-500 hover:bg-gray-50 font-medium transition-colors"
+        >
+          Filter
+        </button>
+      </div>
 
       {/* Filter Section */}
       <FilterSection
+        isDisplayFilter={isDisplayFilter}
         isOpen={isFilterOpen}
         onToggle={() => setIsFilterOpen(!isFilterOpen)}
         activeTab={activeTab}

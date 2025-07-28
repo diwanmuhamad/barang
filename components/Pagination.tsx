@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface PaginationProps {
   currentPage: number;
@@ -15,7 +15,7 @@ export default function Pagination({
   totalPages,
   onPageChange,
   totalItems,
-  itemsPerPage
+  itemsPerPage,
 }: PaginationProps) {
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
@@ -34,7 +34,7 @@ export default function Pagination({
     }
 
     if (currentPage - delta > 2) {
-      rangeWithDots.push(1, '...');
+      rangeWithDots.push(1, "...");
     } else {
       rangeWithDots.push(1);
     }
@@ -42,7 +42,7 @@ export default function Pagination({
     rangeWithDots.push(...range);
 
     if (currentPage + delta < totalPages - 1) {
-      rangeWithDots.push('...', totalPages);
+      rangeWithDots.push("...", totalPages);
     } else if (totalPages > 1) {
       rangeWithDots.push(totalPages);
     }
@@ -52,17 +52,20 @@ export default function Pagination({
 
   if (totalPages <= 1) {
     return (
-      <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+      <div className="flex items-center justify-between px-4 py-3 sm:px-6">
         <div className="flex-1 flex justify-between sm:hidden">
           <span className="text-sm text-gray-700">
-            Menampilkan {startItem} - {endItem} dari {totalItems} data pada kolom 1 dari 1 kolom
+            Menampilkan {startItem} - {endItem} dari {totalItems} data pada
+            kolom 1 dari 1 kolom
           </span>
         </div>
         <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
           <div>
             <p className="text-sm text-gray-700">
-              Menampilkan <span className="font-medium">{startItem}</span> - <span className="font-medium">{endItem}</span> dari{' '}
-              <span className="font-medium">{totalItems}</span> data pada kolom 1 dari 1 kolom
+              Menampilkan <span className="font-medium">{startItem}</span> -{" "}
+              <span className="font-medium">{endItem}</span> dari{" "}
+              <span className="font-medium">{totalItems}</span> data pada kolom
+              1 dari 1 kolom
             </p>
           </div>
         </div>
@@ -71,15 +74,15 @@ export default function Pagination({
   }
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+    <div className="flex items-center justify-between px-4 py-3 sm:px-6">
       <div className="flex-1 flex justify-between sm:hidden">
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
           className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-md ${
             currentPage === 1
-              ? 'text-gray-300 cursor-not-allowed'
-              : 'text-gray-700 hover:bg-gray-50'
+              ? "text-gray-300 cursor-not-allowed"
+              : "text-gray-700 hover:bg-gray-50"
           }`}
         >
           Previous
@@ -89,8 +92,8 @@ export default function Pagination({
           disabled={currentPage === totalPages}
           className={`ml-3 relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-md ${
             currentPage === totalPages
-              ? 'text-gray-300 cursor-not-allowed'
-              : 'text-gray-700 hover:bg-gray-50'
+              ? "text-gray-300 cursor-not-allowed"
+              : "text-gray-700 hover:bg-gray-50"
           }`}
         >
           Next
@@ -99,20 +102,25 @@ export default function Pagination({
       <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
         <div>
           <p className="text-sm text-gray-700">
-            Menampilkan <span className="font-medium">{startItem}</span> - <span className="font-medium">{endItem}</span> dari{' '}
-            <span className="font-medium">{totalItems}</span> data pada kolom {currentPage} dari {totalPages} kolom
+            Menampilkan <span className="font-medium">{startItem}</span> -{" "}
+            <span className="font-medium">{endItem}</span> dari{" "}
+            <span className="font-medium">{totalItems}</span> data pada kolom{" "}
+            {currentPage} dari {totalPages} kolom
           </p>
         </div>
         <div>
-          <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+          <nav
+            className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+            aria-label="Pagination"
+          >
             {/* Previous button */}
             <button
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
+              className={`relative inline-flex items-center px-2 py-2 rounded-l-md text-sm font-medium ${
                 currentPage === 1
-                  ? 'text-gray-300 cursor-not-allowed'
-                  : 'text-gray-500 hover:bg-gray-50'
+                  ? "text-gray-300 cursor-not-allowed"
+                  : "text-gray-500 hover:bg-gray-50"
               }`}
             >
               <span className="sr-only">Previous</span>
@@ -121,7 +129,7 @@ export default function Pagination({
 
             {/* Page numbers */}
             {getVisiblePages().map((page, index) => {
-              if (page === '...') {
+              if (page === "...") {
                 return (
                   <span
                     key={`dots-${index}`}
@@ -139,10 +147,10 @@ export default function Pagination({
                 <button
                   key={pageNumber}
                   onClick={() => onPageChange(pageNumber)}
-                  className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                  className={`relative inline-flex items-center px-4 py-2 text-sm font-medium ${
                     isActive
-                      ? 'z-10 bg-primary-50 border-primary-500 text-primary-600'
-                      : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                      ? "z-10 bg-blue-500 border-primary-500 text-white"
+                      : "  text-gray-500 hover:bg-gray-50"
                   }`}
                 >
                   {pageNumber}
@@ -154,10 +162,10 @@ export default function Pagination({
             <button
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
+              className={`relative inline-flex items-center px-2 py-2 rounded-r-md text-sm font-medium ${
                 currentPage === totalPages
-                  ? 'text-gray-300 cursor-not-allowed'
-                  : 'text-gray-500 hover:bg-gray-50'
+                  ? "text-gray-300 cursor-not-allowed"
+                  : "text-gray-500 hover:bg-gray-50"
               }`}
             >
               <span className="sr-only">Next</span>
