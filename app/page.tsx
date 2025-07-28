@@ -126,7 +126,7 @@ export default function HomePage() {
 
       const response = await fetch(`${endpoint}?${params}`);
       const result: ApiResponse<DataItem[]> = await response.json();
-
+      console.log(response);
       if (result.success && result.data) {
         setData(result.data);
         setTotalItems(result.total || 0);

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { ApiResponse } from "@/lib/types";
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,66 +15,63 @@ export async function GET(request: NextRequest) {
     const sortOrder = searchParams.get("order") || "asc";
 
     // Parse filter parameters
-    const filters = {
-      kode_barang: searchParams.get("kode_barang"),
-      nama_barang: searchParams.get("nama_barang"),
-      tanggal_pembuatan_dari: searchParams.get("tanggal_pembuatan_dari"),
-      tanggal_pembuatan_sampai: searchParams.get("tanggal_pembuatan_sampai"),
-      kategori: searchParams.get("kategori"),
-      satuan: searchParams.get("satuan"),
-      ada_stock: searchParams.get("ada_stock"),
-      keterangan: searchParams.get("keterangan"),
-    };
+    const kodeBarang = searchParams.get("kode_barang");
+    const namaBarang = searchParams.get("nama_barang");
+    const tanggalDari = searchParams.get("tanggal_pembuatan_dari");
+    const tanggalSampai = searchParams.get("tanggal_pembuatan_sampai");
+    const kategori = searchParams.get("kategori");
+    const satuan = searchParams.get("satuan");
+    const adaStock = searchParams.get("ada_stock");
+    const keterangan = searchParams.get("keterangan");
+
+    // Build WHERE conditions
+    const conditions: string[] = [];
+    const params: any[] = [];
+
+    if (kodeBarang && kodeBarang.trim()) {
+      conditions.push("mb.kode_barang LIKE ?");
+      params.push(`%${kodeBarang}%`);
+    }
+
+    if (namaBarang && namaBarang.trim()) {
+      conditions.push("mb.nama_barang LIKE ?");
+      params.push(`%${namaBarang}%`);
+    }
+
+    if (tanggalDari && tanggalDari.trim()) {
+      conditions.push("mb.tanggal_pembuatan >= ?");
+      params.push(tanggalDari);
+    }
+
+    if (tanggalSampai && tanggalSampai.trim()) {
+      conditions.push("mb.tanggal_pembuatan <= ?");
+      params.push(tanggalSampai);
+    }
+
+    if (kategori && kategori.trim()) {
+      conditions.push("mk.nama_kategori LIKE ?");
+      params.push(`%${kategori}%`);
+    }
+
+    if (satuan && satuan.trim()) {
+      conditions.push("mb.satuan LIKE ?");
+      params.push(`%${satuan}%`);
+    }
+
+    if (adaStock && adaStock.trim()) {
+      const stockValue = adaStock === "true" ? 1 : 0;
+      conditions.push("mb.ada_stock = ?");
+      params.push(stockValue);
+    }
+
+    if (keterangan && keterangan.trim()) {
+      conditions.push("mb.keterangan LIKE ?");
+      params.push(`%${keterangan}%`);
+    }
 
     // Build WHERE clause
-    const whereConditions: string[] = [];
-    const queryParams: any[] = [];
-
-    if (filters.kode_barang) {
-      whereConditions.push("mb.kode_barang LIKE ?");
-      queryParams.push(`%${filters.kode_barang}%`);
-    }
-
-    if (filters.nama_barang) {
-      whereConditions.push("mb.nama_barang LIKE ?");
-      queryParams.push(`%${filters.nama_barang}%`);
-    }
-
-    if (filters.tanggal_pembuatan_dari) {
-      whereConditions.push("mb.tanggal_pembuatan >= ?");
-      queryParams.push(filters.tanggal_pembuatan_dari);
-    }
-
-    if (filters.tanggal_pembuatan_sampai) {
-      whereConditions.push("mb.tanggal_pembuatan <= ?");
-      queryParams.push(filters.tanggal_pembuatan_sampai);
-    }
-
-    if (filters.kategori) {
-      whereConditions.push("mk.nama_kategori LIKE ?");
-      queryParams.push(`%${filters.kategori}%`);
-    }
-
-    if (filters.satuan) {
-      whereConditions.push("mb.satuan LIKE ?");
-      queryParams.push(`%${filters.satuan}%`);
-    }
-
-    if (filters.ada_stock) {
-      const stockValue = filters.ada_stock === "true" ? 1 : 0;
-      whereConditions.push("mb.ada_stock = ?");
-      queryParams.push(stockValue);
-    }
-
-    if (filters.keterangan) {
-      whereConditions.push("mb.keterangan LIKE ?");
-      queryParams.push(`%${filters.keterangan}%`);
-    }
-
     const whereClause =
-      whereConditions.length > 0
-        ? `WHERE ${whereConditions.join(" AND ")}`
-        : "";
+      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
     // Validate sort field
     const allowedSortFields = [
@@ -101,18 +97,18 @@ export async function GET(request: NextRequest) {
     }
 
     // Count total records
-    const countQuery = `
+    const countSql = `
       SELECT COUNT(*) as total
       FROM master_barang mb
       LEFT JOIN master_kategori mk ON mb.kategori_id = mk.id
       ${whereClause}
     `;
 
-    const countResult = (await query(countQuery, queryParams)) as any[];
-    const total = countResult[0].total;
+    const countResult = (await query(countSql, params)) as any[];
+    const total = countResult[0]?.total || 0;
 
     // Get paginated data
-    const dataQuery = `
+    const dataSql = `
       SELECT
         mb.id,
         mb.kode_barang,
@@ -128,22 +124,18 @@ export async function GET(request: NextRequest) {
       LEFT JOIN master_kategori mk ON mb.kategori_id = mk.id
       ${whereClause}
       ORDER BY ${orderByColumn} ${validSortOrder}
-      LIMIT ? OFFSET ?
+      LIMIT ${limit} OFFSET ${offset}
     `;
 
-    const dataParams = [...queryParams, limit, offset];
-    const results = (await query(dataQuery, dataParams)) as any[];
+    const results = (await query(dataSql, params)) as any[];
 
-    // Format the response
-    const response: ApiResponse<any[]> = {
+    return NextResponse.json({
       success: true,
       data: results,
       total,
       page,
       limit,
-    };
-
-    return NextResponse.json(response);
+    });
   } catch (error) {
     console.error("Error fetching master barang:", error);
     return NextResponse.json(
@@ -204,12 +196,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert new item
-    const insertQuery = `
+    const insertSql = `
       INSERT INTO master_barang (kode_barang, nama_barang, tanggal_pembuatan, kategori_id, satuan, ada_stock, keterangan)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
 
-    const result = (await query(insertQuery, [
+    const result = (await query(insertSql, [
       kode_barang,
       nama_barang,
       tanggal_pembuatan,
@@ -238,13 +230,14 @@ export async function POST(request: NextRequest) {
       [result.insertId],
     )) as any[];
 
-    const response: ApiResponse<any> = {
-      success: true,
-      data: createdItem[0],
-      message: "Master barang created successfully",
-    };
-
-    return NextResponse.json(response, { status: 201 });
+    return NextResponse.json(
+      {
+        success: true,
+        data: createdItem[0],
+        message: "Master barang created successfully",
+      },
+      { status: 201 },
+    );
   } catch (error) {
     console.error("Error creating master barang:", error);
     return NextResponse.json(

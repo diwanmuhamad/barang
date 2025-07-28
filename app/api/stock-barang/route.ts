@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { ApiResponse } from "@/lib/types";
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,44 +15,43 @@ export async function GET(request: NextRequest) {
     const sortOrder = searchParams.get("order") || "asc";
 
     // Parse filter parameters
-    const filters = {
-      nama_barang: searchParams.get("nama_barang"),
-      kategori_barang: searchParams.get("kategori_barang"),
-      stock_min: searchParams.get("stock_min"),
-      stock_max: searchParams.get("stock_max"),
-      satuan: searchParams.get("satuan"),
-    };
+    const namaBarang = searchParams.get("nama_barang");
+    const kategoriBarang = searchParams.get("kategori_barang");
+    const stockMin = searchParams.get("stock_min");
+    const stockMax = searchParams.get("stock_max");
+    const satuan = searchParams.get("satuan");
 
-    // Build WHERE clause - only show items with ada_stock = true
-    const whereConditions: string[] = ["mb.ada_stock = 1"];
-    const queryParams: any[] = [];
+    // Build WHERE conditions - only show items with ada_stock = 1
+    const conditions: string[] = ["mb.ada_stock = 1"];
+    const params: any[] = [];
 
-    if (filters.nama_barang) {
-      whereConditions.push("mb.nama_barang LIKE ?");
-      queryParams.push(`%${filters.nama_barang}%`);
+    if (namaBarang && namaBarang.trim()) {
+      conditions.push("mb.nama_barang LIKE ?");
+      params.push(`%${namaBarang}%`);
     }
 
-    if (filters.kategori_barang) {
-      whereConditions.push("mk.nama_kategori LIKE ?");
-      queryParams.push(`%${filters.kategori_barang}%`);
+    if (kategoriBarang && kategoriBarang.trim()) {
+      conditions.push("mk.nama_kategori LIKE ?");
+      params.push(`%${kategoriBarang}%`);
     }
 
-    if (filters.stock_min) {
-      whereConditions.push("COALESCE(sb.stock, 0) >= ?");
-      queryParams.push(parseInt(filters.stock_min));
+    if (stockMin && stockMin.trim()) {
+      conditions.push("COALESCE(sb.stock, 0) >= ?");
+      params.push(parseInt(stockMin));
     }
 
-    if (filters.stock_max) {
-      whereConditions.push("COALESCE(sb.stock, 0) <= ?");
-      queryParams.push(parseInt(filters.stock_max));
+    if (stockMax && stockMax.trim()) {
+      conditions.push("COALESCE(sb.stock, 0) <= ?");
+      params.push(parseInt(stockMax));
     }
 
-    if (filters.satuan) {
-      whereConditions.push("mb.satuan LIKE ?");
-      queryParams.push(`%${filters.satuan}%`);
+    if (satuan && satuan.trim()) {
+      conditions.push("mb.satuan LIKE ?");
+      params.push(`%${satuan}%`);
     }
 
-    const whereClause = `WHERE ${whereConditions.join(" AND ")}`;
+    // Build WHERE clause
+    const whereClause = `WHERE ${conditions.join(" AND ")}`;
 
     // Validate sort field
     const allowedSortFields = [
@@ -88,7 +86,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Count total records
-    const countQuery = `
+    const countSql = `
       SELECT COUNT(*) as total
       FROM master_barang mb
       LEFT JOIN master_kategori mk ON mb.kategori_id = mk.id
@@ -96,11 +94,11 @@ export async function GET(request: NextRequest) {
       ${whereClause}
     `;
 
-    const countResult = (await query(countQuery, queryParams)) as any[];
-    const total = countResult[0].total;
+    const countResult = (await query(countSql, params)) as any[];
+    const total = countResult[0]?.total || 0;
 
     // Get paginated data
-    const dataQuery = `
+    const dataSql = `
       SELECT
         mb.id,
         mb.nama_barang,
@@ -114,22 +112,18 @@ export async function GET(request: NextRequest) {
       LEFT JOIN stock_barang sb ON mb.id = sb.barang_id
       ${whereClause}
       ORDER BY ${orderByColumn} ${validSortOrder}
-      LIMIT ? OFFSET ?
+      LIMIT ${limit} OFFSET ${offset}
     `;
 
-    const dataParams = [...queryParams, limit, offset];
-    const results = (await query(dataQuery, dataParams)) as any[];
+    const results = (await query(dataSql, params)) as any[];
 
-    // Format the response
-    const response: ApiResponse<any[]> = {
+    return NextResponse.json({
       success: true,
       data: results,
       total,
       page,
       limit,
-    };
-
-    return NextResponse.json(response);
+    });
   } catch (error) {
     console.error("Error fetching stock barang:", error);
     return NextResponse.json(
@@ -223,13 +217,11 @@ export async function POST(request: NextRequest) {
       [barang_id],
     )) as any[];
 
-    const response: ApiResponse<any> = {
+    return NextResponse.json({
       success: true,
       data: stockData[0],
       message: "Stock updated successfully",
-    };
-
-    return NextResponse.json(response);
+    });
   } catch (error) {
     console.error("Error updating stock barang:", error);
     return NextResponse.json(

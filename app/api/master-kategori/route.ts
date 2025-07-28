@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { ApiResponse } from "@/lib/types";
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,35 +15,32 @@ export async function GET(request: NextRequest) {
     const sortOrder = searchParams.get("order") || "asc";
 
     // Parse filter parameters
-    const filters = {
-      kode_kategori: searchParams.get("kode_kategori"),
-      nama_kategori: searchParams.get("nama_kategori"),
-      keterangan: searchParams.get("keterangan"),
-    };
+    const kodeKategori = searchParams.get("kode_kategori");
+    const namaKategori = searchParams.get("nama_kategori");
+    const keterangan = searchParams.get("keterangan");
+
+    // Build WHERE conditions
+    const conditions: string[] = [];
+    const params: any[] = [];
+
+    if (kodeKategori && kodeKategori.trim()) {
+      conditions.push("kode_kategori LIKE ?");
+      params.push(`%${kodeKategori}%`);
+    }
+
+    if (namaKategori && namaKategori.trim()) {
+      conditions.push("nama_kategori LIKE ?");
+      params.push(`%${namaKategori}%`);
+    }
+
+    if (keterangan && keterangan.trim()) {
+      conditions.push("keterangan LIKE ?");
+      params.push(`%${keterangan}%`);
+    }
 
     // Build WHERE clause
-    const whereConditions: string[] = [];
-    const queryParams: any[] = [];
-
-    if (filters.kode_kategori) {
-      whereConditions.push("kode_kategori LIKE ?");
-      queryParams.push(`%${filters.kode_kategori}%`);
-    }
-
-    if (filters.nama_kategori) {
-      whereConditions.push("nama_kategori LIKE ?");
-      queryParams.push(`%${filters.nama_kategori}%`);
-    }
-
-    if (filters.keterangan) {
-      whereConditions.push("keterangan LIKE ?");
-      queryParams.push(`%${filters.keterangan}%`);
-    }
-
     const whereClause =
-      whereConditions.length > 0
-        ? `WHERE ${whereConditions.join(" AND ")}`
-        : "";
+      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
     // Validate sort field
     const allowedSortFields = [
@@ -59,17 +55,17 @@ export async function GET(request: NextRequest) {
     const validSortOrder = sortOrder.toLowerCase() === "desc" ? "DESC" : "ASC";
 
     // Count total records
-    const countQuery = `
+    const countSql = `
       SELECT COUNT(*) as total
       FROM master_kategori
       ${whereClause}
     `;
 
-    const countResult = (await query(countQuery, queryParams)) as any[];
-    const total = countResult[0].total;
+    const countResult = (await query(countSql, params)) as any[];
+    const total = countResult[0]?.total || 0;
 
     // Get paginated data
-    const dataQuery = `
+    const dataSql = `
       SELECT
         id,
         kode_kategori,
@@ -80,22 +76,18 @@ export async function GET(request: NextRequest) {
       FROM master_kategori
       ${whereClause}
       ORDER BY ${validSortField} ${validSortOrder}
-      LIMIT ? OFFSET ?
+      LIMIT ${limit} OFFSET ${offset}
     `;
 
-    const dataParams = [...queryParams, limit, offset];
-    const results = (await query(dataQuery, dataParams)) as any[];
+    const results = (await query(dataSql, params)) as any[];
 
-    // Format the response
-    const response: ApiResponse<any[]> = {
+    return NextResponse.json({
       success: true,
       data: results,
       total,
       page,
       limit,
-    };
-
-    return NextResponse.json(response);
+    });
   } catch (error) {
     console.error("Error fetching master kategori:", error);
     return NextResponse.json(
@@ -142,12 +134,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert new item
-    const insertQuery = `
+    const insertSql = `
       INSERT INTO master_kategori (kode_kategori, nama_kategori, keterangan)
       VALUES (?, ?, ?)
     `;
 
-    const result = (await query(insertQuery, [
+    const result = (await query(insertSql, [
       kode_kategori,
       nama_kategori,
       keterangan || null,
@@ -167,13 +159,14 @@ export async function POST(request: NextRequest) {
       [result.insertId],
     )) as any[];
 
-    const response: ApiResponse<any> = {
-      success: true,
-      data: createdItem[0],
-      message: "Master kategori created successfully",
-    };
-
-    return NextResponse.json(response, { status: 201 });
+    return NextResponse.json(
+      {
+        success: true,
+        data: createdItem[0],
+        message: "Master kategori created successfully",
+      },
+      { status: 201 },
+    );
   } catch (error) {
     console.error("Error creating master kategori:", error);
     return NextResponse.json(
