@@ -207,7 +207,7 @@ export default function HomePage() {
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
-              d="M15 19l-7-7 7-7"
+              d="M19 12H5M12 19l-7-7 7-7"
             />
           </svg>
           Log Aktivitas Daftar Promosi

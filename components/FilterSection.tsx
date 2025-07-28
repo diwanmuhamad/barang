@@ -300,9 +300,9 @@ export default function FilterSection({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-sm mb-6">
+    <div className="rounded-lg shadow-sm mb-6">
       {/* Filter Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+      <div className="flex items-center justify-between p-4">
         <h3 className="text-lg font-medium text-gray-900">Filter</h3>
         <button
           onClick={onToggle}
@@ -323,16 +323,16 @@ export default function FilterSection({
           {renderFilterContent()}
 
           {/* Filter Actions */}
-          <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+          <div className="flex justify-end space-x-3 mt-6 pt-4">
             <button
               onClick={handleReset}
-              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+              className="px-6 py-2 border border-red-500 rounded-full text-red-500 hover:bg-gray-50 font-medium transition-colors"
             >
               Reset
             </button>
             <button
               onClick={handleApply}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-medium transition-colors"
             >
               Terapkan
             </button>
