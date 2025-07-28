@@ -19,15 +19,27 @@ export default function TabNavigation({
 }: TabNavigationProps) {
   return (
     <div className="mb-6">
-      <div className="flex justify-center space-x-1 p-1 rounded-lg max-w-4xl mx-auto">
+      <div className="flex justify-center p-1 rounded-lg max-w-4xl mx-auto h-[35px]">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
             className={
               activeTab === tab.id
-                ? "px-6 py-3 text-sm font-medium text-white bg-gray-700 rounded-md transition-colors duration-200 h-[5px]"
-                : "px-6 py-3 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-md transition-colors duration-200"
+                ? `px-7 text-sm font-medium text-black bg-gray-300 rounded-md transition-colors duration-200 ${
+                    tab.id === "master-kategori"
+                      ? "rounded-r-none rounded-l-none"
+                      : tab.id === "stock-barang"
+                      ? "rounded-l-none"
+                      : "rounded-r-none"
+                  }`
+                : `px-7 text-sm font-medium border border-black text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-md transition-colors duration-200 ${
+                    tab.id === "master-kategori"
+                      ? "rounded-r-none rounded-l-none border-r-0 border-l-0"
+                      : tab.id === "stock-barang"
+                      ? "rounded-l-none"
+                      : "rounded-r-none"
+                  }`
             }
           >
             {tab.label}

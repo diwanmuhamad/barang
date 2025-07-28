@@ -22,11 +22,7 @@ export default function RootLayout({
           <header className="bg-blue-600 text-white shadow-sm">
             <div className="max-w-full px-6">
               <div className="flex justify-between items-center h-14">
-                <div className="flex items-center">
-                  <h1 className="text-lg font-medium">
-                    Log Aktivitas Daftar Promosi
-                  </h1>
-                </div>
+                <div className="flex items-center"></div>
                 <div className="flex items-center space-x-6">
                   <button className="flex items-center space-x-2 text-white hover:text-blue-100 transition-colors px-3 py-1 rounded">
                     <svg
