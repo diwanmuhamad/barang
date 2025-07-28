@@ -86,11 +86,8 @@ export default function FilterSection({
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Tanggal Pembuatan
         </label>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="flex gap-2">
           <div>
-            <label className="block text-xs text-gray-500 mb-1">
-              Dari Tanggal
-            </label>
             <input
               type="date"
               className="input-field text-xs"
@@ -100,8 +97,8 @@ export default function FilterSection({
               }
             />
           </div>
+          <p className="text-gray-500 text-sm my-auto">s/d</p>
           <div>
-            <label className="block text-xs text-gray-500 mb-1">s/d</label>
             <input
               type="date"
               className="input-field text-xs"
@@ -247,9 +244,6 @@ export default function FilterSection({
         </label>
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="block text-xs text-gray-500 mb-1">
-              Min Stock
-            </label>
             <input
               type="number"
               className="input-field text-xs"
@@ -257,11 +251,11 @@ export default function FilterSection({
               value={filters.stock_min || ""}
               onChange={(e) => handleInputChange("stock_min", e.target.value)}
             />
+            <label className="block text-xs text-gray-500 mb-1">
+              Min Stock
+            </label>
           </div>
           <div>
-            <label className="block text-xs text-gray-500 mb-1">
-              Max Stock
-            </label>
             <input
               type="number"
               className="input-field text-xs"
@@ -269,6 +263,9 @@ export default function FilterSection({
               value={filters.stock_max || ""}
               onChange={(e) => handleInputChange("stock_max", e.target.value)}
             />
+            <label className="block text-xs text-gray-500 mb-1">
+              Max Stock
+            </label>
           </div>
         </div>
       </div>
