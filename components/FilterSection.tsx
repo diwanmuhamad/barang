@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { ChevronUp, ChevronDown } from "lucide-react";
 import {
   TabType,
   MasterBarangFilter,
@@ -9,30 +9,31 @@ import {
   StockBarangFilter,
 } from "@/lib/types";
 
-interface FilterModalProps {
+interface FilterSectionProps {
   isOpen: boolean;
-  onClose: () => void;
+  onToggle: () => void;
   activeTab: TabType;
   onApplyFilter: (filters: any) => void;
   currentFilters: any;
 }
 
-export default function FilterModal({
+export default function FilterSection({
   isOpen,
-  onClose,
+  onToggle,
   activeTab,
   onApplyFilter,
   currentFilters,
-}: FilterModalProps) {
+}: FilterSectionProps) {
   const [filters, setFilters] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    if (isOpen) {
-      setFilters(currentFilters || {});
-    }
-  }, [isOpen, currentFilters]);
+    setFilters(currentFilters || {});
+  }, [currentFilters]);
 
-  if (!isOpen) return null;
+  // Reset filters when tab changes
+  useEffect(() => {
+    setFilters({});
+  }, [activeTab]);
 
   const handleInputChange = (field: string, value: string) => {
     setFilters((prev: Record<string, any>) => ({
@@ -43,15 +44,16 @@ export default function FilterModal({
 
   const handleApply = () => {
     onApplyFilter(filters);
-    onClose();
   };
 
   const handleReset = () => {
-    setFilters({});
+    const emptyFilters = {};
+    setFilters(emptyFilters);
+    onApplyFilter(emptyFilters);
   };
 
   const renderMasterBarangFilters = () => (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-4 gap-4">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Kode Barang
@@ -89,7 +91,7 @@ export default function FilterModal({
             </label>
             <input
               type="date"
-              className="input-field"
+              className="input-field text-xs"
               value={filters.tanggal_pembuatan_dari || ""}
               onChange={(e) =>
                 handleInputChange("tanggal_pembuatan_dari", e.target.value)
@@ -100,7 +102,7 @@ export default function FilterModal({
             <label className="block text-xs text-gray-500 mb-1">s/d</label>
             <input
               type="date"
-              className="input-field"
+              className="input-field text-xs"
               value={filters.tanggal_pembuatan_sampai || ""}
               onChange={(e) =>
                 handleInputChange("tanggal_pembuatan_sampai", e.target.value)
@@ -167,7 +169,7 @@ export default function FilterModal({
   );
 
   const renderMasterKategoriFilters = () => (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-3 gap-4">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Kode Kategori Barang
@@ -194,7 +196,7 @@ export default function FilterModal({
         />
       </div>
 
-      <div className="col-span-2">
+      <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Keterangan
         </label>
@@ -210,7 +212,7 @@ export default function FilterModal({
   );
 
   const renderStockBarangFilters = () => (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-4 gap-4">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Nama Barang
@@ -248,7 +250,7 @@ export default function FilterModal({
             </label>
             <input
               type="number"
-              className="input-field"
+              className="input-field text-xs"
               placeholder="0"
               value={filters.stock_min || ""}
               onChange={(e) => handleInputChange("stock_min", e.target.value)}
@@ -260,7 +262,7 @@ export default function FilterModal({
             </label>
             <input
               type="number"
-              className="input-field"
+              className="input-field text-xs"
               placeholder="999"
               value={filters.stock_max || ""}
               onChange={(e) => handleInputChange("stock_max", e.target.value)}
@@ -298,40 +300,45 @@ export default function FilterModal({
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Filter</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X size={24} />
-          </button>
-        </div>
+    <div className="bg-white border border-gray-200 rounded-lg shadow-sm mb-6">
+      {/* Filter Header */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <h3 className="text-lg font-medium text-gray-900">Filter</h3>
+        <button
+          onClick={onToggle}
+          className="flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors"
+        >
+          <span className="mr-1">{isOpen ? "Sembunyikan" : "Tampilkan"}</span>
+          {isOpen ? (
+            <ChevronUp className="w-4 h-4" />
+          ) : (
+            <ChevronDown className="w-4 h-4" />
+          )}
+        </button>
+      </div>
 
+      {/* Filter Content */}
+      {isOpen && (
         <div className="p-6">
-          <div className="flex justify-end mb-4">
-            <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
-              Sembunyikan ↑
+          {renderFilterContent()}
+
+          {/* Filter Actions */}
+          <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+            <button
+              onClick={handleReset}
+              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+            >
+              Reset
+            </button>
+            <button
+              onClick={handleApply}
+              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+            >
+              Terapkan
             </button>
           </div>
-
-          {renderFilterContent()}
         </div>
-
-        <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
-          <button
-            onClick={handleReset}
-            className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium transition-colors"
-          >
-            Reset
-          </button>
-          <button onClick={handleApply} className="btn-primary">
-            Terapkan
-          </button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

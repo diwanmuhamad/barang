@@ -18,20 +18,22 @@ export default function TabNavigation({
   onTabChange,
 }: TabNavigationProps) {
   return (
-    <div className="border-b border-gray-200 mb-6">
-      <nav className="-mb-px flex space-x-8">
+    <div className="mb-6">
+      <div className="flex justify-center space-x-1 p-1 rounded-lg max-w-4xl mx-auto">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
             className={
-              activeTab === tab.id ? "tab-button-active" : "tab-button"
+              activeTab === tab.id
+                ? "px-6 py-3 text-sm font-medium text-white bg-gray-700 rounded-md transition-colors duration-200 h-[5px]"
+                : "px-6 py-3 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-md transition-colors duration-200"
             }
           >
             {tab.label}
           </button>
         ))}
-      </nav>
+      </div>
     </div>
   );
 }

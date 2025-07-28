@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { ChevronUp, ChevronDown } from 'lucide-react';
-import { TableColumn, SortConfig } from '@/lib/types';
+import { ChevronUp, ChevronDown } from "lucide-react";
+import { TableColumn, SortConfig } from "@/lib/types";
 
 interface DataTableProps<T> {
   data: T[];
@@ -16,7 +16,7 @@ export default function DataTable<T extends Record<string, any>>({
   columns,
   sortConfig,
   onSort,
-  loading = false
+  loading = false,
 }: DataTableProps<T>) {
   const handleSort = (field: string, sortable?: boolean) => {
     if (sortable !== false) {
@@ -30,7 +30,7 @@ export default function DataTable<T extends Record<string, any>>({
     const isActive = sortConfig?.field === field;
 
     if (isActive) {
-      return sortConfig.order === 'asc' ? (
+      return sortConfig.order === "asc" ? (
         <ChevronUp className="w-4 h-4 text-primary-600" />
       ) : (
         <ChevronDown className="w-4 h-4 text-primary-600" />
@@ -47,30 +47,48 @@ export default function DataTable<T extends Record<string, any>>({
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <div className="animate-pulse">
           <div className="h-12 bg-gray-100"></div>
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-16 bg-white border-b border-gray-100"></div>
+            <div
+              key={i}
+              className="h-16 bg-white border-b border-gray-100"
+            ></div>
           ))}
         </div>
       </div>
     );
   }
 
+  // Handle empty or undefined data
+  if (!data || !Array.isArray(data)) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="p-8 text-center text-gray-500">
+          <p>Error loading data. Please try again.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full">
+          <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
               {columns.map((column, index) => (
                 <th
                   key={`${String(column.key)}-${index}`}
-                  className={`table-header ${
-                    column.sortable !== false ? 'cursor-pointer hover:bg-gray-100' : ''
+                  className={`px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider ${
+                    column.sortable !== false
+                      ? "cursor-pointer hover:bg-gray-100"
+                      : ""
                   }`}
-                  onClick={() => handleSort(String(column.key), column.sortable)}
+                  onClick={() =>
+                    handleSort(String(column.key), column.sortable)
+                  }
                 >
                   <div className="flex items-center justify-between">
                     <span>{column.label}</span>
@@ -80,7 +98,7 @@ export default function DataTable<T extends Record<string, any>>({
               ))}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white">
             {data.length === 0 ? (
               <tr>
                 <td
@@ -102,7 +120,9 @@ export default function DataTable<T extends Record<string, any>>({
                       />
                     </svg>
                     <p className="text-lg font-medium">Tidak ada data</p>
-                    <p className="text-sm">Data akan ditampilkan di sini ketika tersedia</p>
+                    <p className="text-sm">
+                      Data akan ditampilkan di sini ketika tersedia
+                    </p>
                   </div>
                 </td>
               </tr>
@@ -110,17 +130,33 @@ export default function DataTable<T extends Record<string, any>>({
               data.map((item, rowIndex) => (
                 <tr
                   key={`row-${rowIndex}`}
-                  className="hover:bg-gray-50 transition-colors"
+                  className="border-b border-gray-100 hover:bg-blue-50 transition-colors"
                 >
                   {columns.map((column, colIndex) => (
                     <td
                       key={`${String(column.key)}-${colIndex}-${rowIndex}`}
-                      className="table-cell"
+                      className="px-6 py-4 text-sm text-gray-900"
                     >
-                      {column.render
-                        ? column.render(item[column.key as keyof T], item)
-                        : String(item[column.key as keyof T] || '-')
-                      }
+                      {(() => {
+                        try {
+                          if (column.render) {
+                            return column.render(
+                              item[column.key as keyof T],
+                              item,
+                            );
+                          }
+                          const value = item[column.key as keyof T];
+                          return value !== null && value !== undefined
+                            ? String(value)
+                            : "-";
+                        } catch (error) {
+                          console.error(
+                            `Error rendering column ${String(column.key)}:`,
+                            error,
+                          );
+                          return "-";
+                        }
+                      })()}
                     </td>
                   ))}
                 </tr>

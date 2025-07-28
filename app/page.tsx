@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Filter } from "lucide-react";
 import TabNavigation from "@/components/TabNavigation";
-import FilterModal from "@/components/FilterModal";
+import FilterSection from "@/components/FilterSection";
 import DataTable from "@/components/DataTable";
 import Pagination from "@/components/Pagination";
 import {
@@ -20,7 +19,7 @@ type DataItem = MasterBarang | MasterKategori | StockBarang;
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState<TabType>("master-barang");
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(true);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<DataItem[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -122,19 +121,33 @@ export default function HomePage() {
         case "stock-barang":
           endpoint = "/api/stock-barang";
           break;
+        default:
+          endpoint = "/api/master-barang";
       }
 
       const response = await fetch(`${endpoint}?${params}`);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const result: ApiResponse<DataItem[]> = await response.json();
-      console.log(response);
-      if (result.success && result.data) {
+
+      if (result.success && result.data && Array.isArray(result.data)) {
         setData(result.data);
         setTotalItems(result.total || 0);
         setTotalPages(Math.ceil((result.total || 0) / itemsPerPage));
+      } else {
+        console.error("Invalid data format:", result);
+        setData([]);
+        setTotalItems(0);
+        setTotalPages(1);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
       setData([]);
+      setTotalItems(0);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
@@ -143,11 +156,17 @@ export default function HomePage() {
   useEffect(() => {
     setCurrentPage(1);
     setCurrentFilters({});
+    setSortConfig({ field: "id", order: "asc" });
   }, [activeTab]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Reset filter state when tab changes
+  useEffect(() => {
+    setIsFilterOpen(true);
+  }, [activeTab]);
 
   const handleSort = (field: string) => {
     setSortConfig((prev) => ({
@@ -166,14 +185,18 @@ export default function HomePage() {
   };
 
   const handleTabChange = (tab: TabType) => {
-    setActiveTab(tab);
+    if (tab !== activeTab) {
+      setLoading(true);
+      setData([]);
+      setActiveTab(tab);
+    }
   };
 
   return (
     <div className="space-y-6">
       {/* Back button */}
-      <div className="flex items-center">
-        <button className="flex items-center text-primary-600 hover:text-primary-700 font-medium transition-colors">
+      <div className="flex items-center mb-4">
+        <button className="flex items-center text-blue-600 hover:text-blue-700 font-medium transition-colors">
           <svg
             className="w-5 h-5 mr-2"
             fill="none"
@@ -194,25 +217,25 @@ export default function HomePage() {
       {/* Tab Navigation */}
       <TabNavigation activeTab={activeTab} onTabChange={handleTabChange} />
 
-      {/* Filter Button */}
-      <div className="flex justify-end">
-        <button
-          onClick={() => setIsFilterOpen(true)}
-          className="btn-filter flex items-center space-x-2"
-        >
-          <Filter size={20} />
-          <span>Filter</span>
-        </button>
-      </div>
+      {/* Filter Section */}
+      <FilterSection
+        isOpen={isFilterOpen}
+        onToggle={() => setIsFilterOpen(!isFilterOpen)}
+        activeTab={activeTab}
+        onApplyFilter={handleApplyFilter}
+        currentFilters={currentFilters}
+      />
 
       {/* Data Table */}
-      <DataTable
-        data={data}
-        columns={getCurrentColumns()}
-        sortConfig={sortConfig}
-        onSort={handleSort}
-        loading={loading}
-      />
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <DataTable
+          data={data}
+          columns={getCurrentColumns()}
+          sortConfig={sortConfig}
+          onSort={handleSort}
+          loading={loading}
+        />
+      </div>
 
       {/* Pagination */}
       {!loading && data.length > 0 && (
@@ -224,15 +247,6 @@ export default function HomePage() {
           itemsPerPage={itemsPerPage}
         />
       )}
-
-      {/* Filter Modal */}
-      <FilterModal
-        isOpen={isFilterOpen}
-        onClose={() => setIsFilterOpen(false)}
-        activeTab={activeTab}
-        onApplyFilter={handleApplyFilter}
-        currentFilters={currentFilters}
-      />
     </div>
   );
 }
